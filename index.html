@@ -1,0 +1,65 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movies</title>
+    <style class="css" src="./style/style.css"></style>
+    <!-- <script src="./pagination.js"></script> -->
+    <script type="module">
+      fetch('http://localhost:1234/movies')
+      .then(res=>res.json())
+      .then(moviesList=>{
+          const html = moviesList.map(movie=>{
+              return `
+              <article data-id="${movie.id}">
+                  <h2>${movie.title}</h2>
+                  <img src="${movie.poster}" alt="${movie.title}"></img>
+                  <p>${movie.description}</p>
+
+                   <button>Delete</button>
+              </article>
+              `
+          }).join('')
+          document.querySelector('main').innerHTML = html
+
+          document.addEventListener('click', e=>{
+              if(e.target.matches('button')){
+                  const article = e.target.closest('article')
+                  const id =  article.dataset.id
+
+                  fetch(`http://localhost:1234/movies/${id}`, {
+                    method: 'DELETE'
+                  })
+                    .then(res =>{
+                    if(res.ok){
+                    article.remove()
+                    }
+                })
+                }             
+          })
+      })
+    </script>
+  </head>
+  <body>
+    <!-- <h1>Movie List</h1>
+    <section>
+        <div id="movie-list"></div>
+
+        <div>
+            <button id="back">⏮</button>
+
+            <span id="page-info"></span>
+
+            <button id="next">⏭</button>
+        </div>
+    </section>
+
+    <template>
+        <article>
+            <h2 id="movie-title"></h2>
+            <p id="movie-description"></p>
+        </article>
+    </template>
+     -->
+  </body>
+</html>
