@@ -3,3 +3,4 @@ api.http
 .env
 package.json
 package-lock.json
+movies.json

@@ -1,3 +1,4 @@
+
 const z = require('zod');
 
 const movieSchema =z.object({
@@ -16,7 +17,7 @@ const movieSchema =z.object({
         z.enum(['Action','Adventure','Comedy','Drama','Fantasy', 'Romance','Sci-Fi']),
         {
             required_error:'Movie genre is required',
-            invalid_type_error:'Movie genre mus be an array of enum Genre'
+            invalid_type_error:'Movie genre must be an array of enum '
         }
     )
   })
