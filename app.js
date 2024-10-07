@@ -18,8 +18,7 @@ app.use(
         "http://localhost:8080",
         "http://localhost:1234",
         "https://movies.com",
-        "https://midu.dev",
-        "http://127.0.0.1/:5500",
+        "http://127.0.0.1/*",
       ];
 
       if (ACCEPTED_ORIGINS.includes(origin)) {
@@ -41,9 +40,27 @@ app.disable("x-powered-by");
 
 app.use(express.json());
 
-app.get("/movies/all", (req, res) => {
+//get movies by genre or by movie name
+app.get("/movies", (req, res) => {
+  //res.header('Access-Control-Allow-Origin','*')
+  const { genre, title } = req.query;
+  if (genre) {
+    const filteredMovie = moviesList.filter(
+      movie => movie.genre.some(g => g.toLowerCase() === genre.toLowerCase())
+    );
+
+    return res.json(filteredMovie);
+  } else if (title) {
+    const filteredMovie = moviesList.filter(
+      movie => movie.title.toLowerCase() === title.toLowerCase()
+    );
+
+    return res.json(filteredMovie);
+  }
+
   res.json(moviesList);
 });
+
 
 //pagination
 app.get("/movies/pages", (req, res) => {
@@ -67,26 +84,6 @@ app.get("/movies/:id", (req, res) => {
   res.status(404).send("<h1>Movie not found</h1>");
 });
 
-//get movies by genre or by movie name
-app.get("/movies", (req, res) => {
-  //res.header('Access-Control-Allow-Origin','*')
-  const { genre, title } = req.query;
-  if (genre) {
-    const filteredMovie = moviesList.filter((movie) =>
-      movie.genre.some(g => g.toLowerCase() === genre.toLowerCase())
-    );
-
-    return res.json(filteredMovie);
-  } else if (title) {
-    const filteredMovie = moviesList.filter(
-      movie => movie.title.toLowerCase() === title.toLowerCase()
-    );
-
-    return res.json(filteredMovie);
-  }
-
-  res.status(404).send("<h1>Movie not found</h1>");
-});
 
 //CREAR UNA NUEVA PELICULA
 app.post("/movies", (req, res) => {
@@ -154,7 +151,7 @@ app.delete("/movies/:id", (req, res) => {
 
   moviesList.splice(movieIndex, 1);
 
-  return res.json.son({ message: "Movie deleted" });
+  return res.json({ message: "Movie deleted" });
 });
 
 app.options("/movies/:id", (req, res) => {
