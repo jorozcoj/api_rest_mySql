@@ -1,9 +1,9 @@
 import { Router } from "express";
-import {createRequire} from 'node:module';
-const require = createRequire(import.meta.url)
-const moviesList = require('../../movies.json')
+import { readJSON } from "../../utils.js";
+const moviesList = readJSON('./movies.json')
 import { validateMovie, validatePartialMovie } from "../../schemas/movieValidator.js";
 import { randomUUID } from "node:crypto";
+import { movieModel } from "../models/movie.js";
 
 export const movieRouter = Router();
 
@@ -11,19 +11,7 @@ export const movieRouter = Router();
 //OBTENER TODAS LAS PELICULAS
 movieRouter.get("/", (req, res) => {
   const { genre, title } = req.query;
-  if (genre) {
-    const filteredMovie = moviesList.filter((movie) =>
-      movie.genre.some((g) => g.toLowerCase() === genre.toLowerCase())
-    );
-
-    return res.json(filteredMovie);
-  } else if (title) {
-    const filteredMovie = filter(
-      (movie) => movie.title.toLowerCase() === title.toLowerCase()
-    );
-
-    return res.json(filteredMovie);
-  }
+  const moviesList = movieModel.getAll({genre,title})  
 
   res.json(moviesList);
 });
