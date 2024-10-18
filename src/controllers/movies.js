@@ -45,10 +45,10 @@ export class MovieController {
     return res.json(updatedMovie);
   }
 
-  static async deleteMovie(req, res) {
-    const { id } = req.params;
+  static async delete(req, res) {
+    const { id , id_movie} = req.params;
 
-    const result = await MovieModel.deleteMovie({ id });
+    const result = await MovieModel.delete({ id, id_movie });
     if (result === false) {
       return res.status(404).json({ message: "Movie not found" });
     }

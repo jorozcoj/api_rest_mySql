@@ -19,7 +19,7 @@ movieRouter.patch("/:id", MovieController.update);
 
 
 //ELIMINAR UNA PELICULA
-movieRouter.delete("/:id", MovieController.deleteMovie);
+movieRouter.delete("/:id", MovieController.delete);
 
 //PAGINACIÓN
 movieRouter.get("/pages", MovieController.paginateMovie);
