@@ -2,3 +2,4 @@ node_modules/
 api.http
 .env
 movies.json
+querys.sql

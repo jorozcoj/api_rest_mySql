@@ -44,15 +44,50 @@ export class MovieModel {
       return true
     }
 
-    static async update({id, input}){
-      const movieIndex = moviesList.findIndex(movie => movie.id === id);
-      if (movieIndex === -1) return false
-     
-        moviesList[movieIndex]={
-          ...moviesList[movieIndex],
-        ...input
+    static async update({ id, input }) {
+      if (!id) {
+        throw new Error("Insert a correct Id");
       }
-      return moviesList[movieIndex]             
+    
+      // Verificar si la película existe
+      const [movies] = await connection.query(
+        `SELECT * FROM movie WHERE id = UUID_TO_BIN(?);`,
+        [id]
+      );
+    
+      if (movies.length === 0) {
+        throw new Error("Movie not found");
+      }
+    
+      const fields = [];
+      const values = [];
+    
+      for (const [key, value] of Object.entries(input)) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+    
+      // Agregar el ID para la condición WHERE
+      values.push(id);
+    
+      try {
+        // Actualizar la película
+        await connection.query(
+          `UPDATE movie SET ${fields.join(", ")} WHERE id = UUID_TO_BIN(?);`,
+          values
+        );
+    
+        // Retornar la película actualizada
+        const [updatedMovie] = await connection.query(
+          `SELECT * FROM movie WHERE id = UUID_TO_BIN(?);`,
+          [id]
+        );
+    
+        return updatedMovie[0];
+      } catch (error) {
+        console.log("The movie couldn't be updated", error);
+        throw new Error("The movie couldn't be updated");
+      }
     }
 
 }

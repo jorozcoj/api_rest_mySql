@@ -45,73 +45,120 @@ export class MovieModel {
     }
   }
 
-  static async create({input}) {
+  static async create({ input }) {
     const {
-    genre:genreInput,
-    title,
-    year,
-    duration,
-    director,
-    rate,
-    poster
-  } = input
+      genre: genreInput,
+      title,
+      year,
+      duration,
+      director,
+      rate,
+      poster,
+    } = input;
 
-  const [uuidResult] = await connection.query('select UUID() uuid;')
-  const [{uuid}]= uuidResult
-  
+    const [uuidResult] = await connection.query("select UUID() uuid;");
+    const [{ uuid }] = uuidResult;
 
-  try {    
-
-    await connection.query(
+    try {
+      await connection.query(
         `insert into movie 
         ( id, title, year, duration, director, rate, poster)
          values (UUID_TO_BIN(?), ? , ?, ?, ?, ?, ?);`,
-         [uuid, title, year, duration, director, rate, poster]                 
-         
-      )
+        [uuid, title, year, duration, director, rate, poster]
+      );
       for (let i = 0; i < genreInput.length; i++) {
-        const [row]= await connection.query('select id from genre where name = ?;',[genreInput[i]])
-        const idGenre = row[0]?.id
+        const [row] = await connection.query(
+          "select id from genre where name = ?;",
+          [genreInput[i]]
+        );
+        const idGenre = row[0]?.id;
 
-        if(!idGenre){
-            throw new Error(`Genre not found: ${genreInput[i]}`);
+        if (!idGenre) {
+          throw new Error(`Genre not found: ${genreInput[i]}`);
         }
         await connection.query(
-            `insert into movie_genres (id_movie, id_genre) values
+          `insert into movie_genres (id_movie, id_genre) values
             (UUID_TO_BIN(?), ?);`,
-            [uuid, idGenre]
-        )
+          [uuid, idGenre]
+        );
       }
-      
-    //nunca permitir que el usuario vea el error
-  } catch (error) { 
-    console.log('error creating movie', error)
-    throw new Error('Error creating movie') 
-  } 
-  const [movies] = await connection.query(
-    'select title, year, duration, director, rate, poster from movie where id = UUID_TO_BIN(?);',
-    [uuid]
-  )
-  return movies[0]
-}
 
-  static async delete({id, id_movie}) {
-    const [uuidResult] = await connection.query('select UUID() uuid;')
-  const [{uuid}]= uuidResult
-    if(!id){
-        throw new error("el id a eliminar no existe")
+      //nunca permitir que el usuario vea el error
+    } catch (error) {
+      console.log("error creating movie", error);
+      throw new Error("Error creating movie");
+    }
+    const [movies] = await connection.query(
+      "select title, year, duration, director, rate, poster from movie where id = UUID_TO_BIN(?);",
+      [uuid]
+    );
+    return movies[0];
+  }
+
+  static async delete({ id }) {
+    const [uuidResult] = await connection.query("select UUID() uuid;");
+    const [{ uuid }] = uuidResult;
+    if (!id) {
+      throw new Error("Insert a correct Id");
     }
     try {
-        await connection.query(
-            `DELETE FROM movie where id =?;`,[uuid],
-            `DELETE FROM movie_genres where id_movie=?;`,[uuid]            
-        )
-      }        
-     catch (error) {
-        console.log("La pelicula no pudo ser eliminada", error)
-        throw new error ("no pudo ser eliminada")
+      await connection.query(
+        `DELETE FROM movie where id =?;`,
+        [uuid],
+        `DELETE FROM movie_genres where id_movie=?;`,
+        [uuid]
+      );
+    } catch (error) {
+      console.log("The movie couldn't be deleted", error);
+      throw new Error("The movie couldn't be deleted");
     }
-}  
+  }
 
-  static async update({}) {}
+  static async update({ id, input }) {
+    if (!id) {
+      throw new Error("Insert a correct Id");
+    }
+  
+    // Verify if movie exists
+    const [movies] = await connection.query(
+      `SELECT * FROM movie WHERE id = UUID_TO_BIN(?);`,
+      [id]
+    );
+  
+    if (movies.length === 0) {
+      throw new Error("Movie not found");
+    }
+  
+    // built the query for automatic update
+    const fields = [];
+    const values = [];
+  
+    for (const [key, value] of Object.entries(input)) {
+      fields.push(`${key} = ?`);
+      values.push(value);
+    }
+  
+    // Add ID for condition WHERE
+    values.push(id);
+  
+    try {
+      // update the movie
+      await connection.query(
+        `UPDATE movie SET ${fields.join(", ")} WHERE id = UUID_TO_BIN(?);`,
+        values
+      );
+  
+      // Retornar la película actualizada
+      const [updatedMovie] = await connection.query(
+        `SELECT title, director, duration, poster, rate FROM movie WHERE id = UUID_TO_BIN(?);`,
+        [id]
+      );
+  
+      return updatedMovie[0];
+    } catch (error) {
+      console.log("The movie couldn't be updated", error);
+      throw new Error("The movie couldn't be updated");
+    }
+  }
+  
 }
