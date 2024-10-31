@@ -3,7 +3,7 @@ import mysql from "mysql2/promise";
 const config = {
   host: "localhost",
   user: "root",
-  password: "Luisa9802*",
+  password: "",
   database: "movies",
   port: 3306,
 };
