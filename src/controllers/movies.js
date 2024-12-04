@@ -46,14 +46,13 @@ export class MovieController {
   }
 
   static async delete(req, res) {
-    const { id , id_movie} = req.params;
+    const { id } = req.params;
 
-    const result = await MovieModel.delete({ id, id_movie });
-    if (result === false) {
-      return res.status(404).json({ message: "Movie not found" });
-    }
+    const result = await MovieModel.delete({ id});
+    if (result) return res.json(result);
 
     return res.json({ message: "Movie deleted" });
+    res.status(404).send("<h1>Movie not deleted</h1>");
   }
 
   static async paginateMovie(req, res) {

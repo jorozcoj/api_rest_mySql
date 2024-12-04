@@ -85,23 +85,30 @@ export class MovieModel {
     return movies[0];
   }
 
-  static async delete({ id }) {
-    const [uuidResult] = await connection.query("select UUID() uuid;");
-    const [{ uuid }] = uuidResult;
+  static async delete({ id }) {  
     if (!id) {
       throw new Error("Insert a correct Id");
     }
-    try {
-      await connection.query(
-        `DELETE FROM movie where id =?;`,
-        [uuid],
-        `DELETE FROM movie_genres where id_movie=?;`,
-        [uuid]
+    //verify if movie exists
+    const[movies] = await connection.query(
+      `SELECT * FROM movie WHERE id = UUID_TO_BIN(?)`,
+      [id]    
+    );
+    if (movies.length === 0) {
+      throw new Error("Movie not found",
+        [id]
       );
-    } catch (error) {
-      console.log("The movie couldn't be deleted", error);
-      throw new Error("The movie couldn't be deleted");
-    }
+    }    
+      await connection.query(
+        `DELETE FROM movie where BIN_TO_UUID(id)=?`,
+        [id],
+        
+        `DELETE FROM movie_genres where BIN_TO_UUID(id_movie=?)`,
+        [id]
+      );   
+      
+      return "The movie was deleted";
+    
   }
 
   static async update({ id, input }) {
@@ -136,6 +143,7 @@ export class MovieModel {
       await connection.query(
         `UPDATE movie SET ${fields.join(", ")} WHERE id = UUID_TO_BIN(?);`,
         values
+
       );
   
       // Retornar la película actualizada
